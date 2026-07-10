@@ -7,7 +7,6 @@ individual issue files for detail.
 - (none)
 
 ## Todo
-- [001](001-data-model-migrations.md) Data model & migrations
 - [002](002-accounts-session-identity.md) Accounts context + session identity
 - [003](003-chat-context.md) Chat context (rooms, membership, messages, DMs)
 - [004](004-home-liveview.md) Create company (Home LiveView)
