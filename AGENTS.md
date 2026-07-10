@@ -139,7 +139,7 @@ Never put `if`/`end` inside `{...}`, and never `id="<%= ... %>"`.
       @source "../../lib/sona_web";
 
 - Never use `@apply` in raw CSS — write out the Tailwind classes
-- No daisyUI; write your own Tailwind components
+- daisyUI is allowed; retheme it to the project palette (it's Tailwind under the hood) rather than writing bespoke components
 - Only `app.js` and `app.css` are bundled. Import vendor deps into those files — never reference external `src`/`href` in layouts, and never inline `<script>` tags in templates
 
 ## Tests (general)
