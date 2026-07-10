@@ -32,12 +32,14 @@ defmodule SonaWeb.SessionControllerTest do
 
   describe "POST /join/:token/session" do
     test "joins existing company, sets cookie, and redirects", %{conn: conn} do
-      {:ok, {company, _}} =
+      {:ok, {company, creator}} =
         Accounts.create_company(%{
           name: "Test Hotel",
           username: "alice",
           invite_token: "demo-hotel"
         })
+
+      Sona.Chats.ensure_default_room(company, creator)
 
       conn =
         post(conn, ~p"/join/demo-hotel/session", %{username: "bob"})
@@ -59,6 +61,31 @@ defmodule SonaWeb.SessionControllerTest do
     end
 
     test "re-joining with same username returns existing user", %{conn: conn} do
+      {:ok, {company, creator}} =
+        Accounts.create_company(%{
+          name: "Test Hotel",
+          username: "alice",
+          invite_token: "demo-hotel"
+        })
+
+      Sona.Chats.ensure_default_room(company, creator)
+
+      conn1 =
+        post(conn, ~p"/join/demo-hotel/session", %{username: "bob"})
+
+      user_id_1 = get_session(conn1, "user_id")
+      assert user_id_1, "expected user_id to be set on first join"
+
+      conn2 =
+        post(build_conn(), ~p"/join/demo-hotel/session", %{username: "bob"})
+
+      user_id_2 = get_session(conn2, "user_id")
+      assert user_id_2, "expected user_id to be set on second join"
+
+      assert user_id_1 == user_id_2
+    end
+
+    test "returns error for empty username", %{conn: conn} do
       {:ok, {_company, _}} =
         Accounts.create_company(%{
           name: "Test Hotel",
@@ -66,17 +93,38 @@ defmodule SonaWeb.SessionControllerTest do
           invite_token: "demo-hotel"
         })
 
-      conn1 =
-        post(conn, ~p"/join/demo-hotel/session", %{username: "bob"})
+      conn = post(conn, ~p"/join/demo-hotel/session", %{username: ""})
 
-      user_id_1 = get_session(conn1, "user_id")
+      assert redirected_to(conn) == "/join/demo-hotel"
+      refute get_session(conn, "user_id")
+    end
 
-      conn2 =
-        post(build_conn(), ~p"/join/demo-hotel/session", %{username: "bob"})
+    test "returns error for invalid username characters", %{conn: conn} do
+      {:ok, {_company, _}} =
+        Accounts.create_company(%{
+          name: "Test Hotel",
+          username: "alice",
+          invite_token: "demo-hotel"
+        })
 
-      user_id_2 = get_session(conn2, "user_id")
+      conn = post(conn, ~p"/join/demo-hotel/session", %{username: "bad username!"})
 
-      assert user_id_1 == user_id_2
+      assert redirected_to(conn) == "/join/demo-hotel"
+      refute get_session(conn, "user_id")
+    end
+
+    test "returns error when company has no General room", %{conn: conn} do
+      {:ok, {_company, _}} =
+        Accounts.create_company(%{
+          name: "Test Hotel",
+          username: "alice",
+          invite_token: "demo-hotel"
+        })
+
+      conn = post(conn, ~p"/join/demo-hotel/session", %{username: "bob"})
+
+      assert redirected_to(conn) == "/"
+      refute get_session(conn, "user_id")
     end
   end
 

@@ -8,7 +8,6 @@ individual issue files for detail.
 
 ## Todo
 - [004](004-home-liveview.md) Create company (Home LiveView)
-- [005](005-join-liveview.md) Join via company share link (LiveView)
 - [006](006-room-liveview.md) Room chat LiveView (core chat + realtime)
 - [007](007-inbox-liveview.md) Inbox / room list LiveView
 - [008](008-group-dm-flows.md) New group + 1-1 DM flows
@@ -19,4 +18,5 @@ individual issue files for detail.
 
 ## Done
 - [002](archive/002-accounts-session-identity.md) Accounts context + session identity
+- [005](archive/005-join-liveview.md) Join via company share link (LiveView)
 - (see archive/)

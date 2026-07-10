@@ -24,6 +24,7 @@ defmodule SonaWeb.Router do
     delete "/session", SessionController, :delete
 
     live_session :guest, on_mount: [{SonaWeb.UserAuth, :mount_current_user}] do
+      live "/join/:token", JoinLive, :show
     end
 
     live_session :current_user,
