@@ -4,7 +4,7 @@ defmodule Sona.ChatsTest do
   import Ecto.Query
 
   alias Sona.Accounts.{Company, User}
-  alias Sona.Chat.{Room, Membership, Message}
+  alias Sona.Chat.{Membership, Message, Room}
   alias Sona.Chats
 
   setup do

@@ -1,13 +1,19 @@
 defmodule Sona.Chats do
+  @moduledoc """
+  Context for chat rooms, memberships, and messages.
+
+  Handles the lifecycle of rooms (default `General` room, group rooms, and
+  direct 1:1 rooms), membership of users in rooms, and posting/broadcasting
+  messages over PubSub.
+  """
+
   import Ecto.Query
 
-  alias Sona.Repo
-
-  alias Sona.Chat.Room
+  alias Sona.Accounts.User
   alias Sona.Chat.Membership
   alias Sona.Chat.Message
-
-  alias Sona.Accounts.User
+  alias Sona.Chat.Room
+  alias Sona.Repo
 
   @doc """
   Creates a "General" `:group` room for the company with the creator as a member.
@@ -15,29 +21,34 @@ defmodule Sona.Chats do
   """
   def ensure_default_room(company, user) do
     case Repo.get_by(Room, company_id: company.id, name: "General", type: :group) do
-      nil ->
-        %Room{}
-        |> Room.changeset(%{company_id: company.id, name: "General", type: :group})
-        |> Repo.insert()
-        |> case do
-          {:ok, room} ->
-            create_membership(room, user)
-            {:ok, room}
-
-          {:error, changeset} ->
-            if duplicate_room_error?(changeset) do
-              room = Repo.get_by!(Room, company_id: company.id, name: "General", type: :group)
-              create_membership(room, user)
-              {:ok, room}
-            else
-              {:error, changeset}
-            end
-        end
-
-      room ->
-        create_membership(room, user)
-        {:ok, room}
+      nil -> create_default_room(company, user)
+      room -> add_membership_and_return(room, user)
     end
+  end
+
+  defp create_default_room(company, user) do
+    %Room{}
+    |> Room.changeset(%{company_id: company.id, name: "General", type: :group})
+    |> Repo.insert()
+    |> handle_default_room_insert(company, user)
+  end
+
+  defp handle_default_room_insert({:ok, room}, _company, user) do
+    add_membership_and_return(room, user)
+  end
+
+  defp handle_default_room_insert({:error, changeset}, company, user) do
+    if duplicate_room_error?(changeset) do
+      room = Repo.get_by!(Room, company_id: company.id, name: "General", type: :group)
+      add_membership_and_return(room, user)
+    else
+      {:error, changeset}
+    end
+  end
+
+  defp add_membership_and_return(room, user) do
+    create_membership(room, user)
+    {:ok, room}
   end
 
   @doc """

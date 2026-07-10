@@ -1,4 +1,10 @@
 defmodule SonaWeb.UserAuth do
+  @moduledoc """
+  LiveView `on_mount` hooks for authentication.
+
+  Mounts the current user / scope from the session, and provides a hook to
+  halt and redirect when a user is required.
+  """
   def on_mount(:mount_current_user, _params, session, socket) do
     socket =
       case session["user_id"] do

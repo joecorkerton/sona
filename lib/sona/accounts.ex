@@ -1,6 +1,13 @@
 defmodule Sona.Accounts do
-  alias Sona.Repo
+  @moduledoc """
+  Context for companies and users.
+
+  Handles company creation, invite tokens, and the lifecycle of users
+  (lookup / upsert) within a company.
+  """
+
   alias Sona.Accounts.{Company, User}
+  alias Sona.Repo
 
   def create_company(attrs \\ %{}) do
     invite_token = Map.get(attrs, :invite_token) || generate_invite_token()

@@ -1,55 +1,58 @@
 defmodule SonaWeb.RoomLive do
   use SonaWeb, :live_view
 
+  alias Sona.Chat.{Membership, Room}
   alias Sona.Chats
   alias Sona.Repo
-  alias Sona.Chat.{Room, Membership}
 
   @impl true
   def mount(params, _session, socket) do
     current_user = socket.assigns.current_user
 
     socket =
-      case Ecto.UUID.cast(params["id"]) do
-        :error ->
-          redirect(socket, to: "/chats")
-
-        {:ok, room_id} ->
-          room = Repo.get(Room, room_id)
-
-          cond do
-            is_nil(room) ->
-              redirect(socket, to: "/chats")
-
-            room.company_id != current_user.company_id ->
-              redirect(socket, to: "/chats")
-
-            is_nil(Repo.get_by(Membership, room_id: room.id, user_id: current_user.id)) ->
-              redirect(socket, to: "/chats")
-
-            true ->
-              room = Repo.preload(room, memberships: [:user])
-
-              messages = Chats.list_messages(room)
-
-              socket
-              |> assign(:room, room)
-              |> assign(:header_name, get_header_name(room, current_user))
-              |> assign(:message_count, length(messages))
-              |> assign(:current_user_id, current_user.id)
-              |> stream(:messages, messages, reset: true)
-              |> assign_form()
-              |> then(fn socket ->
-                if connected?(socket) do
-                  Chats.subscribe_room(room)
-                end
-
-                socket
-              end)
-          end
+      case resolve_room(params, current_user) do
+        {:ok, room} -> assign_room(socket, room)
+        :error -> redirect(socket, to: "/chats")
       end
 
     {:ok, socket}
+  end
+
+  defp resolve_room(params, current_user) do
+    with {:ok, room_id} <- Ecto.UUID.cast(params["id"]),
+         %Room{} = room <- Repo.get(Room, room_id),
+         :ok <- check_room_access(room, current_user) do
+      {:ok, Repo.preload(room, memberships: [:user])}
+    else
+      _ -> :error
+    end
+  end
+
+  defp check_room_access(room, current_user) do
+    cond do
+      room.company_id != current_user.company_id -> :error
+      is_nil(Repo.get_by(Membership, room_id: room.id, user_id: current_user.id)) -> :error
+      true -> :ok
+    end
+  end
+
+  defp assign_room(socket, room) do
+    current_user = socket.assigns.current_user
+    messages = Chats.list_messages(room)
+
+    socket
+    |> assign(:room, room)
+    |> assign(:header_name, get_header_name(room, current_user))
+    |> assign(:message_count, length(messages))
+    |> assign(:current_user_id, current_user.id)
+    |> stream(:messages, messages, reset: true)
+    |> assign_form()
+    |> maybe_subscribe(room)
+  end
+
+  defp maybe_subscribe(socket, room) do
+    if connected?(socket), do: Chats.subscribe_room(room)
+    socket
   end
 
   @impl true
