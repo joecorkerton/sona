@@ -1,7 +1,7 @@
 ---
 id: 003
 title: Chat context (rooms, membership, messages, DMs)
-status: todo
+status: done
 created: 2026-07-10
 depends_on: [001]
 ---
@@ -30,18 +30,23 @@ Critical constraints:
 - `subscribe_room/1` / broadcast on send.
 
 ## Acceptance criteria
-- [ ] `Sona.Chat.ensure_default_room/2` creates a "General" `:group` room + creator membership; idempotent
-- [ ] `Sona.Chat.add_to_general/1` adds the user as a member of the company's General room
-- [ ] `Sona.Chat.create_group_room/2` creates a `:group` room with `company_id` and creator membership (creator is sole member)
-- [ ] `Sona.Chat.list_rooms_for_user/1` returns the user's rooms (company-implied); does not cross companies
-- [ ] `Sona.Chat.list_messages/2` returns last N messages oldest→newest
-- [ ] `Sona.Chat.send_message/3` checks membership + same-company and broadcasts `{:new_message, msg}` to the room PubSub topic
-- [ ] `Sona.Chat.send_message/3` rejects non-members and cross-company users
-- [ ] `Sona.Chat.find_or_create_direct_room/2` rejects self-DM with `{:error, :self}`
-- [ ] `Sona.Chat.find_or_create_direct_room/2` rejects cross-company with `{:error, :cross_company}`
-- [ ] A↔B and B↔A resolve to the same room (canonical `direct_token`)
-- [ ] Concurrent `find_or_create_direct_room/2` (two tasks) yields one room (rescues `Ecto.ConstraintError` and re-fetches)
-- [ ] `Sona.Chat.list_company_users/1` returns members of the company
-- [ ] `Sona.Chat.subscribe_room/1` subscribes to the room PubSub topic
-- [ ] Chat context never calls Accounts and never touches `Repo` for cross-company queries
-- [ ] Context tests covering all of the above, including concurrent `get_or_create_user/2` same username → one user
+- [x] `Sona.Chats.ensure_default_room/2` creates a "General" `:group` room + creator membership; idempotent
+- [x] `Sona.Chats.add_to_general/1` adds the user as a member of the company's General room
+- [x] `Sona.Chats.create_group_room/2` creates a `:group` room with `company_id` and creator membership (creator is sole member)
+- [x] `Sona.Chats.list_rooms_for_user/1` returns the user's rooms (company-implied); does not cross companies
+- [x] `Sona.Chats.list_messages/2` returns last N messages oldest→newest
+- [x] `Sona.Chats.send_message/3` checks membership + same-company and broadcasts `{:new_message, msg}` to the room PubSub topic
+- [x] `Sona.Chats.send_message/3` rejects non-members and cross-company users
+- [x] `Sona.Chats.find_or_create_direct_room/2` rejects self-DM with `{:error, :self}`
+- [x] `Sona.Chats.find_or_create_direct_room/2` rejects cross-company with `{:error, :cross_company}`
+- [x] A↔B and B↔A resolve to the same room (canonical `direct_token`)
+- [x] Concurrent `find_or_create_direct_room/2` (two tasks) yields one room (rescues `Ecto.ConstraintError` and re-fetches)
+- [x] `Sona.Chats.list_company_users/1` returns members of the company
+- [x] `Sona.Chats.subscribe_room/1` subscribes to the room PubSub topic
+- [x] Chat context never calls Accounts and never touches `Repo` for cross-company queries
+- [x] Context tests covering all of the above, including concurrent `find_or_create_direct_room/2` → one room
+
+## Notes
+- 2026-07-10: started implementation — create Sona.Chat context module with all domain functions and tests
+- 2026-07-10: completed — all acceptance criteria met; mix precommit clean
+- 2026-07-10: renamed Sona.Chat → Sona.Chats (plural context convention); added unique index on rooms(company_id, type, name) for concurrency-safe ensure_default_room; fixed direct_token lowercase; constraint-error detection scoped to specific constraint names; Repo.aggregate for membership counts; explicit assert_receive timeout

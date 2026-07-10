@@ -8,7 +8,6 @@ individual issue files for detail.
 
 ## Todo
 - [002](002-accounts-session-identity.md) Accounts context + session identity
-- [003](003-chat-context.md) Chat context (rooms, membership, messages, DMs)
 - [004](004-home-liveview.md) Create company (Home LiveView)
 - [005](005-join-liveview.md) Join via company share link (LiveView)
 - [006](006-room-liveview.md) Room chat LiveView (core chat + realtime)
