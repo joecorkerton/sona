@@ -7,7 +7,6 @@ individual issue files for detail.
 - (none)
 
 ## Todo
-- [002](002-accounts-session-identity.md) Accounts context + session identity
 - [004](004-home-liveview.md) Create company (Home LiveView)
 - [005](005-join-liveview.md) Join via company share link (LiveView)
 - [006](006-room-liveview.md) Room chat LiveView (core chat + realtime)
@@ -19,4 +18,5 @@ individual issue files for detail.
 - (none)
 
 ## Done
+- [002](archive/002-accounts-session-identity.md) Accounts context + session identity
 - (see archive/)

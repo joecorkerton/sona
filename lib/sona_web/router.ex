@@ -18,6 +18,17 @@ defmodule SonaWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    post "/session", SessionController, :create
+    post "/join/:token/session", SessionController, :join
+    delete "/session", SessionController, :delete
+
+    live_session :guest, on_mount: [{SonaWeb.UserAuth, :mount_current_user}] do
+    end
+
+    live_session :current_user,
+      on_mount: [{SonaWeb.UserAuth, :mount_current_user}, {SonaWeb.UserAuth, :require_user}] do
+    end
   end
 
   # Other scopes may use custom stacks.
