@@ -29,6 +29,8 @@ defmodule SonaWeb.Router do
     live_session :current_user,
       on_mount: [{SonaWeb.UserAuth, :mount_current_user}, {SonaWeb.UserAuth, :require_user}] do
       live "/chats", InboxLive, :index
+      live "/chats/new/group", NewGroupLive, :index
+      live "/chats/new/message", NewMessageLive, :index
       live "/chats/:id", RoomLive
     end
   end

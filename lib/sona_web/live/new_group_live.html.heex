@@ -1,0 +1,23 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="mx-auto max-w-md space-y-6">
+    <.link
+      navigate={~p"/chats"}
+      class="inline-flex items-center text-sm text-base-content/60 hover:text-base-content"
+    >
+      <.icon name="hero-arrow-left-micro" class="mr-1 size-4" /> Back
+    </.link>
+
+    <h1 class="text-2xl font-bold">New group</h1>
+
+    <.form
+      for={@form}
+      id="new-group-form"
+      phx-change="validate"
+      phx-submit="save"
+      class="space-y-4"
+    >
+      <.input field={@form[:name]} type="text" label="Group name" required />
+      <button type="submit" class="btn btn-primary w-full">Create group</button>
+    </.form>
+  </div>
+</Layouts.app>
