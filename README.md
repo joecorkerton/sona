@@ -1,6 +1,6 @@
 # Sona
 
-A communications platform for hospitality businesses proof of concept
+A communications platform for hospitality businesses and their workers proof of concept
 
 See [task-info](docs/task-info.md) for more information
 

@@ -1,5 +1,12 @@
 This is a Phoenix LiveView web application (`Sona` / `SonaWeb`) backed by PostgreSQL and Tailwind CSS.
 
+A communications platform for hospitality businesses and their workers
+
+## When planning and making changes, always ensure:
+
+- Public functions are tested
+- Front end is primarily designed around use on phones, while still working on desktop devices
+
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
