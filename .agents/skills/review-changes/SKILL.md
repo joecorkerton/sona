@@ -1,5 +1,5 @@
 ---
-name: review
+name: review-changes
 description: Use when the user wants a review of uncommitted code changes — phrases like "review my changes", "review the diff", "review uncommitted work", "what's wrong with my diff", "check my work". Reviews the git diff of uncommitted changes, cross-references the in-progress issue in issues/, and reports bugs, technical issues, and discrepancies from the issue's acceptance criteria. Read-only: never edits files or commits.
 ---
 
