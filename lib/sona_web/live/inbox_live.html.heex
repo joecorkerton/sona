@@ -1,0 +1,72 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <%!-- Company header --%>
+  <div id="company-header">
+    <p class="text-xs uppercase tracking-wide text-base-content/60">Workspace</p>
+    <h1 class="text-2xl font-bold">{@company.name}</h1>
+  </div>
+
+  <%!-- Shareable invite link --%>
+  <div
+    id="invite-link"
+    class="rounded-lg border border-base-300 bg-base-100 p-4"
+  >
+    <p class="text-sm font-medium">Invite your team</p>
+    <p class="mt-1 text-xs text-base-content/60">
+      Share this link so coworkers can join {@company.name}.
+    </p>
+    <div class="mt-2 flex items-center gap-2 rounded-md bg-base-200 px-3 py-2">
+      <code
+        id="invite-url"
+        data-invite-path={@invite_path}
+        class="flex-1 truncate text-sm"
+      >{@invite_url}</code>
+    </div>
+  </div>
+
+  <%!-- Entry points --%>
+  <div class="grid grid-cols-2 gap-3">
+    <button id="new-group-button" type="button" class="btn btn-primary">
+      + New group
+    </button>
+    <button id="new-message-button" type="button" class="btn">
+      + New message
+    </button>
+  </div>
+
+  <%!-- Rooms list --%>
+  <section>
+    <h2 class="mb-2 text-sm font-semibold text-base-content/70">Chats</h2>
+    <ul
+      id="rooms"
+      phx-update="stream"
+      class="space-y-2"
+    >
+      <li
+        id="rooms-empty"
+        class="hidden only:block rounded-lg border border-dashed border-base-300 p-4 text-center text-sm text-base-content/60"
+      >
+        No chats yet — start a new group or message above.
+      </li>
+
+      <li
+        :for={{dom_id, room} <- @streams.rooms}
+        id={dom_id}
+        class="rounded-lg border border-base-300 bg-base-100"
+      >
+        <.link
+          navigate={~p"/chats/#{room.id}"}
+          class="flex items-center gap-3 p-3"
+        >
+          <div class="flex size-9 shrink-0 items-center justify-center rounded-full bg-base-200 text-sm font-semibold">
+            {room.initial}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-medium">
+              {room.name}
+            </p>
+          </div>
+        </.link>
+      </li>
+    </ul>
+  </section>
+</Layouts.app>
