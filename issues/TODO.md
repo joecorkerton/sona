@@ -7,7 +7,7 @@ individual issue files for detail.
 - (none)
 
 ## Todo
-- [009](009-layout-seeds-precommit.md) Layout polish, seeds, precommit
+- (none)
 
 ## Blocked
 - (none)
