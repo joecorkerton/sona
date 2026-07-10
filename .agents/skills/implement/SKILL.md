@@ -1,5 +1,5 @@
 ---
-name: work-on-issue
+name: implement
 description: Use when the user wants to pick up a planned issue and start implementing it — phrases like "work on issue 004", "start 003", "pick up the home liveview issue", "implement the join issue", "begin this issue", "do issue 006", or when they reference an issue by id, filename, or path and ask you to implement it. Resolves one issue, verifies its dependencies are done, flips it to in-progress, implements the work against the acceptance criteria as a contract, checks off criteria as they land, keeps notes appended, and mirrors every status change in both the issue file frontmatter and the issues/TODO.md index. Edits code and issue files; does not commit.
 ---
 
