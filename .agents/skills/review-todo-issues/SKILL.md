@@ -1,6 +1,7 @@
 ---
 name: review-todo-issues
-description: Use when the user wants to review a specific planned issue in issues/ against the existing code as a reference point — phrases like "review issue 003", "check this issue for bugs", "lint this issue", "is this issue consistent with the code", "review this planned work", "check this issue against the codebase". The user gives one issue (by id, filename, or path); the skill reviews just that issue, traversing its depends_on chain to verify dependency compatibility, and reports stale code references, dependency bugs, conflicts with dependencies, convention violations, and unverifiable criteria. Read-only: never edits files or issues.
+description: >-
+  Use when the user wants to review a specific planned issue in issues/ against the existing code as a reference point — phrases like "review issue 003", "check this issue for bugs", "lint this issue", "is this issue consistent with the code", "review this planned work", "check this issue against the codebase". The user gives one issue (by id, filename, or path); the skill reviews just that issue, traversing its depends_on chain to verify dependency compatibility, and reports stale code references, dependency bugs, conflicts with dependencies, convention violations, and unverifiable criteria. Read-only: never edits files or issues.
 ---
 
 # Review a specific issue against the existing code
