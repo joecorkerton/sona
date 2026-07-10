@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/glm-5.2",
+  "provider": {
+    "opencode-go": {
+      "blacklist": ["qwen3.7-max", "qwen3.7-plus", "qwen3.6-plus"]
+    }
+  },
+  "skills": {
+    "paths": [".agents/skills"]
+  }
+}
