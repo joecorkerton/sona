@@ -32,39 +32,46 @@ defmodule SonaWeb.JoinLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <%= if @invalid_token do %>
-        <div class="text-center">
-          <h1 class="text-2xl font-bold text-red-600">Invalid invite link</h1>
-          <p class="mt-2 text-base-content/70">
-            This invite link is not valid. Please ask the company for a new one.
-          </p>
-          <.link
-            navigate={~p"/"}
-            class="mt-6 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
-          >
-            Go home
-          </.link>
-        </div>
-      <% else %>
-        <div class="text-center">
-          <h1 class="text-2xl font-bold">Join {@company.name}</h1>
-          <p class="mt-2 text-base-content/70">
-            Enter a username to join the company workspace.
-          </p>
-        </div>
+      <div class="mx-auto w-full max-w-md px-0 py-8 sm:py-12">
+        <div class="rounded-xl border border-base-300 bg-base-100 p-6 sm:p-8 shadow-sm">
+          <%= if @invalid_token do %>
+            <p class="text-center text-2xl font-semibold tracking-tight text-primary mb-2">
+              Sona.
+            </p>
+            <div class="text-center">
+              <h1 class="text-2xl font-bold text-error">Invalid invite link</h1>
+              <p class="mt-2 text-base-content/70">
+                This invite link is not valid. Please ask the company for a new one.
+              </p>
+              <.button navigate={~p"/"} variant="primary" class="mt-6">
+                Go home
+              </.button>
+            </div>
+          <% else %>
+            <p class="text-center text-2xl font-semibold tracking-tight text-primary mb-2">
+              Sona.
+            </p>
+            <div class="text-center">
+              <h1 class="text-2xl font-bold text-base-content">Join {@company.name}</h1>
+              <p class="mt-2 text-base-content/70">
+                Enter a username to join the company workspace.
+              </p>
+            </div>
 
-        <.form
-          for={@form}
-          id="join-form"
-          action={~p"/join/#{@token}/session"}
-          class="mt-8 mx-auto max-w-sm space-y-4"
-        >
-          <.input field={@form[:username]} type="text" label="Username" required />
-          <button type="submit" class="btn btn-primary w-full">
-            Join
-          </button>
-        </.form>
-      <% end %>
+            <.form
+              for={@form}
+              id="join-form"
+              action={~p"/join/#{@token}/session"}
+              class="mt-8 space-y-4"
+            >
+              <.input field={@form[:username]} type="text" label="Username" required />
+              <.button type="submit" variant="primary" class="w-full">
+                Join
+              </.button>
+            </.form>
+          <% end %>
+        </div>
+      </div>
     </Layouts.app>
     """
   end

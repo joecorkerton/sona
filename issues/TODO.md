@@ -7,7 +7,6 @@ individual issue files for detail.
 - (none)
 
 ## Todo
-- [013](013-page-styling-home-join-inbox-room.md) Page styling for Home, Join, Inbox, Room
 - [014](014-styling-verification-precommit.md) Styling pass verification + precommit gate
 
 ## Blocked

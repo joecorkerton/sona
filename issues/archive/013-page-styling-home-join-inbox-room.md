@@ -1,7 +1,7 @@
 ---
 id: 013
 title: Page styling for Home, Join, Inbox, Room
-status: todo
+status: done
 created: 2026-07-10
 depends_on: [012]
 ---
@@ -39,27 +39,27 @@ Critical constraints (from `AGENTS.md`):
   **not** refactor it to `<.form>` — only restyle its inputs/button.
 
 ## Acceptance criteria
-- [ ] `HomeLive` (`/`): centered card on desktop, full-width padding on mobile; Sona wordmark
+- [x] `HomeLive` (`/`): centered card on desktop, full-width padding on mobile; Sona wordmark
       above the heading; raw `<form action="/session" method="POST">` preserved; raw
       `<button type="submit" class="btn btn-primary w-full">` → `<.button variant="primary">`
       — pass `class="w-full"` through (per AGENTS.md, overriding `<.button>` class inherits no
       defaults, so style fully if adding more than `w-full`)
-- [ ] `JoinLive` (`/join/:token`): same form styling as Home; invalid-token state uses the
+- [x] `JoinLive` (`/join/:token`): same form styling as Home; invalid-token state uses the
       themed `text-error` (warm red) instead of raw `text-red-600`
-- [ ] `InboxLive` (`/chats`): company header as eyebrow (mono/uppercase) + large company name;
+- [x] `InboxLive` (`/chats`): company header as eyebrow (mono/uppercase) + large company name;
       invite-link card `bg-base-200` (stone-100) with rounded border and a copy icon button;
       "New group" / "New message" use `<.button variant="primary">` /
       `<.button variant="secondary">`; room list cards `card bg-base-100 border border-base-300
       rounded-xl` with a circular avatar initial (`bg-sona-lime` or `bg-base-200`); room list
       remains a LiveView stream
-- [ ] `RoomLive` (`/chats/:id`): header made sticky at the top with a back arrow + room/DM
+- [x] `RoomLive` (`/chats/:id`): header made sticky at the top with a back arrow + room/DM
       partner name (current code is a non-sticky flex column — this criterion makes it sticky,
       not just preserves stickiness); own messages `bg-primary text-primary-content` (teal via
       theme), others `bg-base-200 text-base-content` (stone-100); no hard-coded
       `indigo-600`/`gray-100`/`bg-white`/`border-gray-200`; composer `bg-base-100` + top border +
       rounded input + `btn btn-primary` send button; full-height `dvh` layout and stream-based
       message list preserved
-- [ ] No off-theme raw color classes remain in these four templates (`indigo-*`, `gray-*`,
+- [x] No off-theme raw color classes remain in these four templates (`indigo-*`, `gray-*`,
       raw `text-red-600`, raw `bg-primary`/`btn-primary` where a `<.button variant>` applies);
       daisyUI semantic classes and `sona-*` utilities are expected and should remain
 
@@ -69,3 +69,12 @@ Critical constraints (from `AGENTS.md`):
   classes + `sona-*` utilities, not plain-Tailwind replacements. Coordinate with 008's
   InboxLive/RoomLive template changes — not hard-blocked, but re-apply this styling to anything
   008 adds.
+- 2026-07-11: started implementation — restyle Home/Join/Inbox/Room templates with daisyUI
+  semantic classes + `<.button>` variants; merge button class with variant so `class="w-full"` works.
+- 2026-07-11: HomeLive — centered card + Sona. wordmark + `<.button variant="primary" class="w-full">`;
+  raw POST form preserved. JoinLive — matching card form; invalid token uses `text-error`; Go home via `<.button>`.
+- 2026-07-11: InboxLive — mono eyebrow header, `bg-base-200` invite card + copy icon, primary/secondary
+  buttons, room cards with `bg-sona-lime` avatars (stream preserved). RoomLive — sticky header, teal/stone
+  bubbles, base-100 composer + `btn btn-primary` send; no indigo/gray raw colors.
+- 2026-07-11: `<.button>` merges `btn` + variant + optional class; `type` allowed on rest attrs.
+- 2026-07-11: completed — all acceptance criteria met; mix precommit clean.
