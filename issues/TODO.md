@@ -7,7 +7,7 @@ individual issue files for detail.
 - (none)
 
 ## Todo
-- [014](014-styling-verification-precommit.md) Styling pass verification + precommit gate
+- (none)
 
 ## Blocked
 - (none)

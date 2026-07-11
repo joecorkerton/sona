@@ -16,7 +16,7 @@
     <div
       id="messages"
       phx-update="stream"
-      class="flex-1 space-y-3 overflow-y-auto px-4 py-4"
+      class="flex-1 space-y-3 overflow-y-auto px-4 pb-[60px] pt-4"
     >
       <div
         id="messages-empty"
@@ -43,20 +43,24 @@
       </div>
     </div>
 
-    <%!-- Composer --%>
-    <div class="flex-none border-t border-base-300 bg-base-100 px-4 py-3">
-      <.form for={@form} id="compose-form" phx-submit="send">
-        <div class="flex gap-2">
-          <.input
-            field={@form[:body]}
-            type="text"
-            placeholder="Type a message..."
-          />
-          <button type="submit" class="btn btn-primary shrink-0">
-            Send
-          </button>
-        </div>
-      </.form>
+    <%!-- Composer (fixed to viewport bottom; the inner div is centered with
+        max-w-2xl so the form's right edge lines up with the message column on
+        desktop, while staying at the viewport's right edge on mobile) --%>
+    <div class="fixed inset-x-0 bottom-0 z-20 border-t border-base-300 bg-base-100">
+      <div class="mx-auto max-w-2xl px-4 py-3">
+        <.form for={@form} id="compose-form" phx-submit="send" class="ml-auto w-fit max-w-md">
+          <div class="flex gap-2">
+            <.input
+              field={@form[:body]}
+              type="text"
+              placeholder="Type a message..."
+            />
+            <.button type="submit" variant="primary" class="shrink-0">
+              Send
+            </.button>
+          </div>
+        </.form>
+      </div>
     </div>
   </div>
 </Layouts.app>

@@ -1,7 +1,7 @@
 ---
 id: 014
 title: Styling pass verification + precommit gate
-status: todo
+status: in-progress
 created: 2026-07-10
 depends_on: [013]
 ---
@@ -25,21 +25,21 @@ Critical constraints (from `AGENTS.md`):
 - Mobile-first design target ~390px.
 
 ## Acceptance criteria
-- [ ] `rg "(indigo-600|gray-100|gray-200|text-red-600)" lib/sona_web` returns no matches — these
+- [x] `rg "(indigo-600|gray-100|gray-200|text-red-600)" lib/sona_web` returns no matches — these
       are the off-theme raw colors that bypass the daisyUI theme and must be replaced with
       daisyUI semantic classes (`bg-primary`, `bg-base-200`, `text-error`) or `sona-*` utilities
-- [ ] daisyUI classes are expected and present (not swept): a spot check of
+- [x] daisyUI classes are expected and present (not swept): a spot check of
       `rg "(btn|alert|toast|card|input|select|textarea|checkbox|fieldset|navbar|badge)" lib/sona_web`
       shows daisyUI classes in use and rendering in Sona colors via the `sona` theme
-- [ ] `assets/css/app.css` defines the single `sona` daisyUI theme and no stock `dark`/`light`
+- [x] `assets/css/app.css` defines the single `sona` daisyUI theme and no stock `dark`/`light`
       daisyUI themes remain
-- [ ] No external `src`/`href` references were added in `root.html.heex` (fonts, CDN, scripts);
+- [x] No external `src`/`href` references were added in `root.html.heex` (fonts, CDN, scripts);
       the two `phx-track-static` `/assets/...` references are internal and fine
 - [ ] Manual visual check at ~390px width passes for `/`, `/join/:token`, `/chats`, and
       `/chats/:id`: no horizontal scroll, sticky composer does not overlap messages, tap targets
       are at least 44×44px, and all text has sufficient contrast
-- [ ] `mix precommit` passes (compile, format, credo, tests)
-- [ ] Existing tests pass; only tests asserting old class names or the Phoenix header were
+- [x] `mix precommit` passes (compile, format, credo, tests)
+- [x] Existing tests pass; only tests asserting old class names or the Phoenix header were
       updated
 
 ## Notes
@@ -47,3 +47,18 @@ Critical constraints (from `AGENTS.md`):
   Rewritten the same day after the user allowed daisyUI: the sweep target flipped from "no
   daisyUI classes" to "no off-theme raw color classes that bypass the theme." daisyUI classes
   are expected to remain.
+- 2026-07-11: started implementation — verification sweep: off-theme color sweep, daisyUI spot
+  check, app.css theme audit, root.html.heex external-ref audit, and the two-page consistency
+  cleanup (new_group/new_message raw `<button class="btn btn-primary w-full">` →
+  `<.button variant="primary" class="w-full">` so the four page CTAs render identically).
+- 2026-07-11: sweep results — off-theme raw colors: 0 matches. daisyUI classes in use: 90
+  matches. `assets/css/app.css` keeps the single `sona` `@plugin ...daisyui-theme` block (no
+  stock `light`/`dark` themes, no `dark` `@custom-variant`). `root.html.heex` only references
+  the two internal `phx-track-static` `/assets/...` files. Consistency cleanup: replaced raw
+  `<button class="btn btn-primary w-full">` in `new_group_live.html.heex` and
+  `new_message_live.html.heex`, and raw `<button class="btn btn-primary shrink-0">` in
+  `room_live.html.heex`, with `<.button variant="primary" class="...">` so all four page CTAs
+  go through the same component and render identically. `mix precommit` clean (116 tests, no
+  credo issues). Visual check (criterion 5: 390px width, no horizontal scroll, tap targets
+  ≥44×44px, sticky composer / contrast) handed off to the user for in-browser review — the
+  issue stays in-progress until that box is ticked.
