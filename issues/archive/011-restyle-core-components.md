@@ -1,7 +1,7 @@
 ---
 id: 011
 title: Adopt Sona daisyUI theme in CoreComponents + add button variants
-status: todo
+status: done
 created: 2026-07-10
 depends_on: [010]
 ---
@@ -33,21 +33,21 @@ Critical constraints (from `AGENTS.md`):
 - If a field overrides `<.input>`'s class, no defaults are inherited — fully style it.
 
 ## Acceptance criteria
-- [ ] `<.button>` accepts `~w(primary secondary)` in the `variant` validator; `primary` renders
+- [x] `<.button>` accepts `~w(primary secondary)` in the `variant` validator; `primary` renders
       `btn btn-primary` (teal via the Sona theme); `secondary` renders `btn btn-outline`
       (bordered, low-emphasis, themed); `nil` renders plain `btn`
-- [ ] `<.input>` / `<.select>` / `<.textarea>` / `<.checkbox>` keep their daisyUI classes
+- [x] `<.input>` / `<.select>` / `<.textarea>` / `<.checkbox>` keep their daisyUI classes
       (`input`, `select`, `textarea`, `checkbox`, `fieldset`, `label`, `input-error`,
       `select-error`, `textarea-error`) — no stripping — and the `field`/`label`/`errors` API is
       preserved; error states render in the themed warm red (`#dc2626`) via `text-error` /
       `*-error`
-- [ ] The private `error/1` helper keeps `text-error` (now warm red via the theme)
-- [ ] `<.flash>` / `<.flash_group>` keep `toast`, `alert`, `alert-info`, `alert-error` (auto-
+- [x] The private `error/1` helper keeps `text-error` (now warm red via the theme)
+- [x] `<.flash>` / `<.flash_group>` keep `toast`, `alert`, `alert-info`, `alert-error` (auto-
       themed); `JS.show` / `JS.hide` transitions preserved; `<.flash_group>` remains only in
       `Layouts`
-- [ ] `<.table>` / `<.list>` / `<.header>` keep daisy classes (`table-zebra`, `list-row`,
+- [x] `<.table>` / `<.list>` / `<.header>` keep daisy classes (`table-zebra`, `list-row`,
       `base-content`, `text-base-content/70`) — auto-themed
-- [ ] Components render correctly in Sona colors — verified by the existing page tests in
+- [x] Components render correctly in Sona colors — verified by the existing page tests in
       `test/sona_web/live/*_test.exs` (no new smoke test required)
 
 ## Notes
@@ -56,3 +56,6 @@ Critical constraints (from `AGENTS.md`):
   no class changes — the Sona daisyUI theme (010) does the restyling. The only real code change
   here is the `secondary` button variant + a rendering verification pass. Adopting
   `<.button variant="...">` in Home/Join/Inbox raw `<button>` callers is tracked in 013.
+- 2026-07-11: started implementation — add secondary button variant; verify CoreComponents daisy classes.
+- 2026-07-11: button variants landed in `core_components.ex` — `~w(primary secondary)`, primary=`btn-primary`, secondary=`btn-outline`, nil=plain `btn`. Confirmed input/flash/table/list/header daisy classes and flash_group-only-in-Layouts. LiveView tests 45/45 green.
+- 2026-07-11: completed — all acceptance criteria met; mix precommit clean.
