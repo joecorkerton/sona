@@ -1,72 +1,87 @@
 ---
 name: review-todo-issues
 description: >-
-  Use when the user wants to review a specific planned issue in issues/ against the existing code as a reference point — phrases like "review issue 003", "check this issue for bugs", "lint this issue", "is this issue consistent with the code", "review this planned work", "check this issue against the codebase". The user gives one issue (by id, filename, or path); the skill reviews just that issue, traversing its depends_on chain to verify dependency compatibility, and reports stale code references, dependency bugs, conflicts with dependencies, convention violations, and unverifiable criteria. Read-only: never edits files or issues.
+  Use when the user wants to review all planned (open) todo issues in issues/ against the existing code as a reference point — phrases like "review the todo issues", "lint the open issues", "are the planned issues consistent with the code", "check all open issues against the codebase", "review the backlog". Reviews every issue whose status is not yet `done`, traverses the combined dependency graph, and reports stale code references, dependency bugs, conflicts between sibling issues, convention violations, and unverifiable criteria. Read-only: never edits files, issues, or code.
 ---
 
-# Review a specific issue against the existing code
+# Review all open (todo) issues against the existing code
 
-Review **one** user-specified issue against the existing codebase, and report
-inconsistencies, bugs, and conflicts. The existing code is the reference
-point (ground truth); the issue is what's being reviewed. This skill is
-**read-only**: never edit files, issues, or code. Surface findings; the
-user decides what to do.
+Review the full set of not-yet-done planned issues against the existing
+codebase, and report inconsistencies, bugs, and conflicts — both within each
+issue and *across* the open set (who owns what, who collides with whom). The
+existing code is the reference point (ground truth); the issues are what's
+being reviewed. This skill is **read-only**: never edit files, issues, or
+code. Surface findings; the user decides what to do.
 
 This is the complement of the `review` skill. `review` inspects uncommitted
-*code* against the active in-progress *issue*. This skill inspects a
-*planned issue* against the *existing code* — it reviews the plan, not a
+*code* against the active in-progress *issue*. This skill inspects the
+*planned issues* against the *existing code* — it reviews the backlog, not a
 diff. Do not confuse the two: if the user says "review my changes/diff", use
-`review`. If they name a specific issue (by id or file) and want it sanity-
-checked, use this skill.
+`review`. If they want the open backlog sanity-checked against the codebase,
+use this skill.
 
-## Step 1 — Identify the target issue
+## Step 1 — Collect the open issue set
 
 The repo tracks work as one markdown file per issue in `issues/` (see the
 `plan-to-issues` skill for the full convention).
 
-1. The user gives you one issue: by numeric id (`003`, `3`), by filename
-   (`003-slug.md`), or by path (`issues/003-slug.md`). Resolve it to exactly
-   one file.
+1. Scan `issues/` (top level) for every `NNN-slug.md` file whose frontmatter
+   `status` is **not** `done`. The default review set is every issue whose
+   status is `todo`, plus any reached-but-not-done issues you'd otherwise
+   need (`in-progress`, `blocked`) since their plans are still live and may
+   collide with the `todo` set — include them too, but in your report clearly
+   mark each issue's status. Ignore `archive/` for the *target* set: archived
+   issues are `done` and are read only as dependencies (Step 2).
    - If `issues/` is empty or missing: say so and stop. Do not create issues
      or run `plan-to-issues` — that's the user's call.
-   - If the id/filename matches no file: tell the user what you looked for,
-     list the issue files present, and stop.
-   - If the id is ambiguous (shouldn't happen with NNN prefixing, but guard
-     anyway): list the matches and ask which.
-2. Read the target issue file in full. You need:
+   - If `legacy` exists: skip it.
+   - If every non-archived issue is already `done` (so the open set is empty):
+     say so and stop — there's nothing planned to review.
+   - If the user narrowed the request (e.g. "review just the styling
+     issues"): open that subset instead of the whole set, and say so
+     explicitly.
+2. Read every target issue file in full. For each you need:
    - frontmatter: `id`, `title`, `status`, `created`, `depends_on`
    - `## Goal` — the intended outcome,
    - `## Context` — links to the source plan and any prior work,
    - `## Acceptance criteria` — the `- [ ]` checklist (and `- [x]` done),
    - `## Notes` — running context that may clarify intent.
+3. Build a working table of the set: `id`, `title`, `status`, direct
+   `depends_on`. This table drives the rest of the review.
 
-The target is typically a `todo` issue (planned, not started), but the skill
-accepts any status — you're reviewing the *plan*, not an implementation.
-Notes below assume `todo`; adjust if it's `blocked` or `done`.
+The targets are by definition not-started (`todo`) or in-flight, so Notes
+below assume `todo`; adjust wording for `in-progress`/`blocked` cases.
 
-## Step 1b — Traverse the dependency chain
+## Step 2 — Traverse the combined dependency graph
 
-`depends_on` lists issue ids that must be `done` before the target starts.
-You need each dependency's plan to verify the target's assumptions about what
-those deps will create.
+Across the whole open set, resolve `depends_on` transitively so you know what
+each issue's plan *assumes* its dependencies will have created. You need each
+dependency's plan to verify those assumptions.
 
-1. Read the target's `depends_on` list (default to `[]` if absent). For each
-   dep id, find and read the dep issue file in full — from `issues/` **or**
-   `issues/archive/` (done deps get archived). Recurse transitively: each dep
-   may itself have `depends_on`. Build the full closure of deps for the target.
+1. Take the union of every target issue's `depends_on` (default to `[]` if
+   absent). For each dep id, find and read the dep issue file — from
+   `issues/` **or** `issues/archive/` (done deps get archived). Recurse
+   transitively: each dep may itself have `depends_on`. Build the full closure
+   of deps for the whole set.
 2. Record each dep's `id`, `title`, and `status` (`todo`, `in-progress`,
    `blocked`, `done`).
 3. If a dep id in the closure matches no issue file anywhere (`issues/` or
    `issues/archive/`): that's a finding (bucket B) — a dangling reference.
    Note it but continue; treat the missing dep's "created entities" as empty.
-4. Do not review the deps themselves as targets. You read them only to know
-   what they create/own and what conventions they imply, so you can judge
-   whether the target is compatible with them.
+4. Do not review the deps themselves as targets (deps that are already `done`
+   are out of scope by Step 1). You read them only to know what they
+   create/own and what conventions they imply, so you can judge whether the
+   open set's assumptions about them are compatible.
+   - Exception: a dep that is itself in the open set (a `todo`/`in-progress`/
+     `blocked` issue that another open issue depends on) *is* one of your
+     targets — but when checking a dependent's assumptions against it, compare
+     only against that dep's own criteria, not a full review of it (which
+     you'll do separately in Step 5).
 
-If the target has no `depends_on` and no transitive deps, skip the rest of
-this step — there's no chain to check.
+If the whole set has no transitive deps, skip the rest of this step — there's
+no chain to check.
 
-## Step 2 — Build a map of what the existing code actually has
+## Step 3 — Build a map of what the existing code actually has
 
 The code is the reference point. Establish ground truth. Read and scan:
 
@@ -79,11 +94,13 @@ The code is the reference point. Establish ground truth. Read and scan:
   exist.
 - `lib/sona_web/components/*.ex` — shared components.
 - `test/` — what's covered and what conventions the tests follow.
+- `issues/TODO.md` and `issues/README.md` — the index and convention docs
+  (check the index agrees with the actual file set / statuses).
 - `AGENTS.md` — the codebase's conventions (the style/source-of-truth the
-  issue should respect). Read it in full.
+  issues should respect). Read it in full.
 
-You don't need a full inventory — only enough to resolve every entity the
-target issue (and its deps) reference. Use Grep to confirm existence of
+You don't need a full inventory — only enough to resolve every entity that
+any target issue (or its deps) reference. Use Grep to confirm existence of
 specific modules/functions/routes rather than reading every file.
 
 Track these "existing entities" (the set the code actually has right now):
@@ -91,9 +108,9 @@ module names, context names + their public functions, schema names + their
 fields, route paths, migration table names, LiveView modules, configured
 PubSub topics, supervisors/registries, and any dep from `mix.exs`.
 
-## Step 3 — Extract references from the target (and its deps)
+## Step 4 — Extract references from each target (and its deps)
 
-Parse the target issue's body for references to code-level entities:
+For each target issue, parse its body for references to code-level entities:
 
 - Module/context names, e.g. `Sona.Messages`, `Sona.Messaging`, `Sona.Accounts`.
 - Schema names, e.g. `Sona.Messages.Message`, `%Message{}`.
@@ -108,16 +125,16 @@ Parse the target issue's body for references to code-level entities:
 
 Also parse each dependency issue's body for the entities its criteria
 *create* or *own* (modules, schemas, routes, migrations, context functions).
-This is the "dep creates X" set you'll match the target's assumptions against.
+This is the "dep creates X" set you'll match each target's assumptions against.
 
-For each reference in the target, classify it as one of:
+For each reference in a target, classify it as one of:
 
 1. **Created by this issue** — the target's own acceptance criteria explicitly
    create it (e.g. criterion says "Add a `Sona.Messages` context with
    `list_messages/0`"). Fine.
 2. **Created by a dependency** — a `depends_on` issue's (or a transitive
    dep's) criteria create it. Fine *if* the dep really does create it
-   (verify against the dep's criteria from Step 1b).
+   (verify against the dep's criteria from Step 2).
 3. **Assumed to already exist** — the target uses it as if the codebase already
    has it, without any criterion (the target's own or a dep's) creating it.
    This is the case to scrutinize: verify it against the existing-entities map.
@@ -125,10 +142,11 @@ For each reference in the target, classify it as one of:
 Don't over-parse prose. If a reference is ambiguous, note it as "assumed to
 exist" rather than inventing a module.
 
-## Step 4 — Review the target issue
+## Step 5 — Review each target issue, then cross-check the set
 
-Go criterion by criterion through the target issue, and identify findings in
-six buckets:
+Go criterion by criterion through each target issue, and identify findings in
+six buckets. Then do a second pass across the *whole* open set for conflicts
+between siblings (bucket C).
 
 ### A. Stale code references
 
@@ -145,7 +163,7 @@ entity is claimed to exist *now* and doesn't, it's stale.
 
 ### B. Dependency bugs (compatibility along the chain)
 
-Check `depends_on` and the transitive chain for the target:
+Check each target's `depends_on` and the transitive chain:
 
 - A dep id that no issue file has anywhere (`issues/` or `issues/archive/`) →
   dangling reference, bug.
@@ -159,7 +177,7 @@ Check `depends_on` and the transitive chain for the target:
   regressed. Cite the dep issue id and the missing entity.
 - Circular dependency (the chain leads back to the target: target → dep →
   ... → target) → bug.
-- The target that `depends_on` itself → bug.
+- A target that `depends_on` itself → bug.
 - **Compatibility mismatch** — the target assumes a dep creates entity X with
   shape Y, but the dep's criteria actually create X with a different shape,
   or create something near-but-not X, or don't create X at all (only claim
@@ -172,23 +190,26 @@ Check `depends_on` and the transitive chain for the target:
 - Missing dependency: the target assumes an entity only another issue creates,
   but doesn't list that issue in `depends_on` → flag (the dep graph is wrong).
 
-### C. Conflicts with dependencies
+### C. Conflicts with dependencies *and with sibling open issues
 
-Between the target and its deps (the set of issues whose plans intersect the
-target's):
+Check between each target and its deps **and** between the open issues
+themselves (the set of issues whose plans intersect):
 
-- The target and a dep both claim to create/own the same module, context,
-  schema, route, migration, or `live_session` → ownership conflict.
-- Contradictory criteria between target and a dep (e.g. target says "messages
-  belong to a single room" but a dep's schema says `has_many :messages` on
-  `Room`) → contradiction.
-- Overlapping scope where the boundary between the target and a dep is unclear
-  (both add message persistence, both define the chat LiveView) → flag for the
-  user to split/clarify.
+- A target and a dep, or two open targets, both claim to create/own the same
+  module, context, schema, route, migration, or `live_session` → ownership
+  conflict.
+- Contradictory criteria between target and a dep, or between two open
+  targets (e.g. one says "messages belong to a single room" but another's
+  schema says `has_many :messages` on `Room`) → contradiction.
+- Overlapping scope where the boundary between two issues is unclear (both
+  add message persistence, both define the chat LiveView) → flag for the
+  user to split/clarify. Assign explicit ownership or add a `depends_on` edge.
+- A `depends_on` edge that runs the wrong way, or is missing where one is
+  needed to prevent two issues from racing on the same entity → flag.
 
 ### D. Convention violations
 
-The target's described approach conflicts with `AGENTS.md` conventions.
+A target's described approach conflicts with `AGENTS.md` conventions.
 Examples: planning LiveView collections as lists instead of streams; forms
 from raw changesets instead of `to_form/2`; `String.to_atom/1` on user
 input; predicate functions named `is_*`; adding `httpoison`/`tesla` instead
@@ -226,28 +247,41 @@ Flag:
 
 Be precise. Cite the target issue id and the specific criterion / note, and
 the code reference (file path or "grep for X found no matches") so the user
-can jump to the spot. For bucket B/C findings, also cite the dep issue id
-and the dep criterion you're comparing against. Do not speculate about code
-that the issue doesn't reference or that isn't going to be written.
+can jump to the spot. For B/C findings, also cite the dep issue id and the
+dep criterion (or the sibling issue id) you're comparing against. Do not
+speculate about code that no issue references or that isn't going to be
+written.
 
-## Step 5 — Report
+## Step 6 — Report
 
 Report back in this exact structure, in plain text (no code edits, no files
 written):
 
-1. **Issue reviewed** — the target issue's `id — title`, its `status`, and a
-   one-line summary of the goal, so the user knows what was reviewed. Then a
-   one-line summary of the dependency chain: the list of dep ids/titles and
-   their statuses (or "no dependencies" if none).
+1. **Issues reviewed** — the full set as a short table: each issue's
+   `id — title` and `status` (one line each), so the user knows what was
+   in scope. Then a one-line summary of the combined dependency graph: the
+   deps touched (ids/titles + statuses) and any dangling ones (or "no
+   dependencies" if the set has none).
 2. **Code reference summary** — 2–4 lines on what the codebase currently has
-   relevant to this issue (e.g. "no domain contexts yet; only the Phoenix
+   relevant to this set (e.g. "no domain contexts yet; only the Phoenix
    scaffold"). No code dumps.
-3. **Findings** — a single numbered list, each item prefixed with its bucket
-   letter (A–F), the specific criterion or reference (e.g. `criterion "Add
-   list_rooms/0"` or `reference to Sona.Messages`), and a one-sentence
-   description. For B/C findings, name the dep issue id involved. If the
-   issue has no findings, say "Clean."
-4. **Verdict** — one of:
+3. **Findings per issue** — group by issue. For each issue, a header line
+   `### 003 — <title> (status)`, then a numbered list of that issue's
+   findings, each prefixed with its bucket letter (A–F), the specific
+   criterion or reference (e.g. `criterion "Add list_rooms/0"` or `reference
+   to Sona.Messages`), and a one-sentence description. For B/C findings, name
+   the dep issue id or sibling issue id involved. If an issue has no findings,
+   say "Clean." under its header.
+4. **Cross-set findings** — a single numbered list of findings that span
+   more than one issue (bucket C: ownership conflicts, contradictions, or
+   unclear boundaries between open issues). Each entry names the issue ids
+   involved. If there are none, say "No cross-set conflicts."
+5. **Index health** — one or two lines noting whether `issues/TODO.md` agrees
+   with the actual file set and statuses (missing/outdated entries, issues
+   listed under the wrong status bucket, archived issues still listed, etc.).
+   If the index is accurate, say "TODO.md is in sync."
+6. **Verdict** — a per-issue verdict from the list below, then one overall
+   verdict for the open set in a single final line. Per-issue verdict options:
    - `Issue is consistent with the codebase` (no findings, or only minor
      E/F notes).
    - `Fix stale code references first` (bucket A dominates).
@@ -255,8 +289,14 @@ written):
    - `Resolve conflicts with dependencies` (bucket C dominates).
    - `Tighten acceptance criteria` (bucket E dominates).
    - `Convention drift — align issue with AGENTS.md` (bucket D dominates).
-   Pick the single most important one; don't hedge. If two are equally
-   severe, pick the one that would block starting work.
+   Pick the single most important one per issue; don't hedge. If two are
+   equally severe, pick the one that would block starting work. The overall
+   verdict summarizes the set (e.g. "Open set is broadly consistent; issues
+   003 and 007 need a dependency edge added before work starts.").
+7. **Suggested ordering** — an optional one-line ordering of the open issues
+   that respects `depends_on` and lowers cross-set collision risk. Only
+   include if the graph admits a clear linear order; otherwise say "No clean
+   linear order — review the C findings."
 
 Keep the whole report tight. Prefer specific criterion + one sentence over
 paragraphs. If you found nothing wrong, say so plainly — do not manufacture
@@ -270,11 +310,10 @@ findings.
   job.
 - It does not review an uncommitted diff against an issue — that's the
   `review` skill's job.
-- It does not review more than one issue. The user gives one issue; if they
-  want several reviewed, they invoke the skill once per issue. Do not
-  silently expand scope.
+- It does not review `done`/archived issues as targets. They are read only as
+  dependencies, to verify open issues' assumptions about what they own.
 - It does not deeply review the dependency issues themselves — it reads them
-  only to verify the target's assumptions about what they create/own.
+  only to verify the open issues' assumptions about what they create/own.
 - It does not run tests, `mix precommit`, or the compiler. You may
   *suggest* running them.
 - It does not implement the planned work or generate scaffolding.
