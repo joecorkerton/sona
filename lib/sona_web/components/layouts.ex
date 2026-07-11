@@ -35,27 +35,39 @@ defmodule SonaWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="sticky top-0 z-40 flex items-center justify-between border-b border-base-300 bg-base-100 px-4 py-2 sm:px-6 lg:px-8">
-      <div class="flex items-center gap-2">
-        <.link navigate={~p"/"} class="text-lg font-bold tracking-tight">
-          Sona
+    <header
+      id="app-header"
+      class="sticky top-0 z-40 flex items-center justify-between border-b border-base-300 bg-base-100 px-4 py-2 sm:px-6"
+    >
+      <div class="flex items-center gap-2 min-w-0">
+        <.link
+          navigate={~p"/"}
+          id="sona-wordmark"
+          class="text-lg font-semibold tracking-tight shrink-0"
+        >
+          Sona.
         </.link>
       </div>
 
-      <div class="flex items-center gap-3 text-sm">
-        <%= if @current_scope do %>
-          <span class="hidden sm:inline text-base-content/60">
-            {@current_scope.company.name}
-          </span>
-          <span class="text-base-content/80">
-            {@current_scope.user.display_name || @current_scope.user.username}
-          </span>
-        <% end %>
-        <.theme_toggle />
+      <div :if={@current_scope} class="flex items-center gap-2 sm:gap-3 text-sm min-w-0">
+        <span id="user-company-label" class="truncate text-base-content/70">
+          {@current_scope.user.username} @ {@current_scope.company.name}
+        </span>
+        <form action={~p"/session"} method="post" id="sign-out-form" class="shrink-0">
+          <input type="hidden" name="_method" value="delete" />
+          <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+          <button
+            type="submit"
+            id="sign-out-button"
+            class="text-sm text-base-content/60 hover:text-base-content underline-offset-2 hover:underline"
+          >
+            Sign out
+          </button>
+        </form>
       </div>
     </header>
 
-    <main class="mx-auto max-w-2xl px-4 py-6 sm:px-6 lg:px-8">
+    <main class="mx-auto w-full max-w-2xl px-4 py-3 sm:px-6 sm:py-4">
       {render_slot(@inner_block)}
     </main>
 
@@ -108,43 +120,6 @@ defmodule SonaWeb.Layouts do
         {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
-    </div>
-    """
-  end
-
-  @doc """
-  Provides dark vs light theme toggle based on themes defined in app.css.
-
-  See <head> in root.html.heex which applies the theme before page load.
-  """
-  def theme_toggle(assigns) do
-    ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 [[data-theme-source=system]_&]:!left-0 transition-[left]" />
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="system"
-      >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="light"
-      >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="dark"
-      >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
     </div>
     """
   end

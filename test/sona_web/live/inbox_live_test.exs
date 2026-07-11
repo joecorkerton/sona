@@ -31,8 +31,27 @@ defmodule SonaWeb.InboxLiveTest do
       conn = log_in_user(conn, user)
       {:ok, view, _html} = live(conn, "/chats")
 
-      assert has_element?(view, "header")
+      assert has_element?(view, "header#app-header")
       assert has_element?(view, "main")
+      assert has_element?(view, "#sona-wordmark", "Sona.")
+      assert has_element?(view, "#user-company-label", "alice @ Test Hotel")
+      assert has_element?(view, "#sign-out-form")
+      assert has_element?(view, "#sign-out-form input[name=\"_method\"][value=\"delete\"]")
+      assert has_element?(view, "#sign-out-button", "Sign out")
+      assert has_element?(view, "#flash-group")
+      refute has_element?(view, "[data-phx-theme]")
+    end
+
+    test "sign-out form clears the session and redirects to /", %{conn: conn, user: user} do
+      conn = log_in_user(conn, user)
+      {:ok, view, _html} = live(conn, "/chats")
+
+      form = form(view, "#sign-out-form", %{})
+      result_conn = submit_form(form, conn)
+
+      assert result_conn.status == 302
+      assert Phoenix.ConnTest.redirected_to(result_conn, 302) == "/"
+      refute Plug.Conn.get_session(result_conn, "user_id")
     end
 
     test "redirects unauthenticated visitor to /", %{conn: conn} do

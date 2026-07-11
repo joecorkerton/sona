@@ -17,6 +17,22 @@ defmodule SonaWeb.HomeLiveTest do
       assert has_element?(view, "input[name=\"username\"]")
     end
 
+    test "app shell shows Sona wordmark without signed-in chrome", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/")
+
+      assert has_element?(view, "#sona-wordmark", "Sona.")
+      assert has_element?(view, "header#app-header")
+      assert has_element?(view, "main")
+      assert has_element?(view, "#flash-group")
+      refute has_element?(view, "#user-company-label")
+      refute has_element?(view, "#sign-out-form")
+      refute has_element?(view, "[data-phx-theme]")
+      refute html =~ "Website"
+      refute html =~ "GitHub"
+      refute html =~ "Get Started"
+      refute html =~ "Phoenix Framework"
+    end
+
     test "form submits to SessionController.create, creates company + user + General room, sets cookie, redirects to /chats",
          %{conn: conn} do
       {:ok, view, _html} = live(conn, "/")
