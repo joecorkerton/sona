@@ -22,7 +22,6 @@ defmodule SonaWeb.InboxLive do
       |> assign(:page_title, company.name)
       |> assign(:company, company)
       |> assign(:invite_url, invite_url)
-      |> assign(:invite_path, "/join/#{company.invite_token}")
       |> assign(:room_count, length(rooms))
       |> stream(:rooms, rooms, reset: true)
 

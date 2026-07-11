@@ -22,19 +22,156 @@
       <div class="mt-3 flex items-center gap-2 rounded-lg border border-base-300 bg-base-100 px-3 py-2">
         <code
           id="invite-url"
-          data-invite-path={@invite_path}
           class="min-w-0 flex-1 truncate text-sm text-base-content"
         >{@invite_url}</code>
         <button
           type="button"
           id="copy-invite-button"
+          phx-hook=".CopyInvite"
+          phx-update="ignore"
           class="btn btn-ghost btn-sm btn-square shrink-0"
           aria-label="Copy invite link"
           data-copy-target="#invite-url"
         >
-          <.icon name="hero-clipboard-document" class="size-5" />
+          <span data-copy-icon="idle">
+            <.icon name="hero-clipboard-document" class="size-5" />
+          </span>
+          <span data-copy-icon="done" class="hidden">
+            <.icon name="hero-check" class="size-5" />
+          </span>
         </button>
       </div>
+
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".CopyInvite">
+        export default {
+          mounted() {
+            this.idleIcon = this.el.querySelector('[data-copy-icon="idle"]')
+            this.doneIcon = this.el.querySelector('[data-copy-icon="done"]')
+            this.idleLabel = this.el.getAttribute("aria-label")
+            this.resetTimer = null
+
+            this.handleClick = (event) => {
+              event.preventDefault()
+              this.copy()
+            }
+
+            this.el.addEventListener("click", this.handleClick)
+          },
+
+          destroyed() {
+            this.el.removeEventListener("click", this.handleClick)
+            if (this.resetTimer) {
+              clearTimeout(this.resetTimer)
+              this.resetTimer = null
+            }
+          },
+
+          copy() {
+            const targetSelector = this.el.dataset.copyTarget
+            if (!targetSelector) return
+
+            const target = document.querySelector(targetSelector)
+            if (!target) return
+
+            const text = (target.textContent || "").trim()
+            if (text === "") return
+
+            // Defer the clipboard call into the chain so a synchronous throw
+            // (e.g. execCommand("copy") returning false) becomes a rejected
+            // promise that the .catch below can recover from.
+            Promise.resolve()
+              .then(() => this.writeToClipboard(text))
+              .then(() => this.flashCopied())
+              .catch(() => this.flashFailure())
+          },
+
+          writeToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+              return navigator.clipboard.writeText(text)
+            }
+
+            // Fallback for non-secure contexts (http:// on a LAN IP, etc.).
+            const textarea = document.createElement("textarea")
+            textarea.value = text
+            textarea.setAttribute("readonly", "")
+            textarea.style.position = "fixed"
+            textarea.style.top = "0"
+            textarea.style.left = "0"
+            textarea.style.opacity = "0"
+            document.body.appendChild(textarea)
+            textarea.focus()
+            textarea.select()
+
+            let succeeded = false
+            try {
+              succeeded = document.execCommand("copy")
+            } catch (_err) {
+              succeeded = false
+            } finally {
+              document.body.removeChild(textarea)
+            }
+
+            if (!succeeded) {
+              throw new Error("copy failed")
+            }
+          },
+
+          flashCopied() {
+            this.setState("done", "Copied!")
+          },
+
+          flashFailure() {
+            this.setState("failure", "Copy failed — select the link to copy it")
+          },
+
+          setState(state, label) {
+            // If the element was detached before the copy resolved
+            // (e.g. user navigated away mid-click), drop the update and
+            // don't schedule a new reset timer that destroyed() couldn't
+            // have cleared.
+            if (!this.el.isConnected) return
+
+            this.clearReset()
+
+            if (this.idleIcon && this.doneIcon) {
+              if (state === "done") {
+                this.idleIcon.classList.add("hidden")
+                this.doneIcon.classList.remove("hidden")
+              } else {
+                this.idleIcon.classList.remove("hidden")
+                this.doneIcon.classList.add("hidden")
+              }
+            }
+
+            this.el.setAttribute("aria-label", label)
+
+            const delay = state === "done" ? 1500 : 2500
+            this.resetTimer = setTimeout(() => this.reset(), delay)
+          },
+
+          reset() {
+            if (!this.el.isConnected) return
+
+            this.clearReset()
+
+            if (this.idleIcon && this.doneIcon) {
+              this.idleIcon.classList.remove("hidden")
+              this.doneIcon.classList.add("hidden")
+            }
+
+            if (this.idleLabel) {
+              this.el.setAttribute("aria-label", this.idleLabel)
+            }
+          },
+
+          clearReset() {
+            if (this.resetTimer) {
+              clearTimeout(this.resetTimer)
+              this.resetTimer = null
+            }
+          },
+        }
+      </script>
     </div>
 
     <%!-- Entry points --%>

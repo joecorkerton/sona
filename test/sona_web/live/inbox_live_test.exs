@@ -77,6 +77,15 @@ defmodule SonaWeb.InboxLiveTest do
       assert has_element?(view, "#invite-link")
       assert has_element?(view, "#invite-url", "/join/demo-hotel")
     end
+
+    test "copy button is wired to a clipboard hook (not dead UI)", %{conn: conn, user: user} do
+      conn = log_in_user(conn, user)
+      {:ok, view, _html} = live(conn, "/chats")
+
+      assert has_element?(view, "#copy-invite-button[phx-hook='SonaWeb.InboxLive.CopyInvite']")
+      assert has_element?(view, "#copy-invite-button[phx-update='ignore']")
+      assert has_element?(view, "#copy-invite-button[data-copy-target='#invite-url']")
+    end
   end
 
   describe "entry points" do
