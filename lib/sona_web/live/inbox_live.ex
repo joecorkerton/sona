@@ -2,6 +2,7 @@ defmodule SonaWeb.InboxLive do
   use SonaWeb, :live_view
 
   alias Sona.Chats
+  alias Sona.Guide
   alias Sona.Repo
 
   @impl true
@@ -16,6 +17,7 @@ defmodule SonaWeb.InboxLive do
       |> Enum.map(&decorate_room(&1, current_user))
 
     invite_url = build_invite_url(company.invite_token)
+    guide_summary = Guide.latest_guide_summary(current_user)
 
     socket =
       socket
@@ -23,6 +25,7 @@ defmodule SonaWeb.InboxLive do
       |> assign(:company, company)
       |> assign(:invite_url, invite_url)
       |> assign(:room_count, length(rooms))
+      |> assign(:guide_summary, guide_summary)
       |> stream(:rooms, rooms, reset: true)
 
     {:ok, socket}

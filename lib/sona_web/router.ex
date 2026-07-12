@@ -32,6 +32,7 @@ defmodule SonaWeb.Router do
       live "/chats/new/group", NewGroupLive, :index
       live "/chats/new/message", NewMessageLive, :index
       live "/chats/:id", RoomLive
+      live "/guide", GuideLive
     end
   end
 

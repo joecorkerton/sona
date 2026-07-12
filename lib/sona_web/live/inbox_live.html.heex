@@ -228,5 +228,64 @@
         </li>
       </ul>
     </section>
+
+    <%!-- Guide section — visually and structurally separate from the Chats
+        room list. The user's AI shift guide lives at /guide; we render a
+        single entry here with a teaser (or "Set up your guide" CTA when
+        the conversation has no messages yet). Fetched via
+        Sona.Guide.latest_guide_summary/1, which auto-ensures the
+        conversation. --%>
+    <section
+      id="guide-section"
+      aria-labelledby="guide-section-heading"
+      class="rounded-xl border border-accent/30 bg-accent/5 p-3 sm:p-4"
+    >
+      <h2
+        id="guide-section-heading"
+        class="mb-2 px-1 text-sm font-semibold text-base-content/70"
+      >
+        Guide
+      </h2>
+
+      <.link
+        navigate={~p"/guide"}
+        id="guide-link"
+        class="flex items-start gap-3 rounded-xl border border-base-300 bg-base-100 p-3 transition-colors hover:bg-base-200"
+      >
+        <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-accent-content">
+          <.icon name="hero-sparkles" class="size-5" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-sm font-medium text-base-content">
+            Sona Guide
+          </p>
+          <%!-- Teaser + empty-CTA live in their own wrapper so the CTA can
+              use `hidden only:block` — when the teaser is present, the CTA
+              is one of two children and stays hidden; when no teaser, the
+              CTA is the only child and `only:block` overrides `hidden` to
+              show it. This is the project's empty-state convention (same
+              as #rooms-empty below). --%>
+          <div class="guide-content-row">
+            <p
+              :if={@guide_summary.teaser}
+              id="guide-teaser"
+              class="mt-0.5 line-clamp-2 text-xs text-base-content/60"
+            >
+              {@guide_summary.teaser}
+            </p>
+            <p
+              id="guide-empty-cta"
+              class="mt-0.5 text-xs text-base-content/60 hidden only:block"
+            >
+              Set up your guide
+            </p>
+          </div>
+        </div>
+        <.icon
+          name="hero-chevron-right"
+          class="size-5 shrink-0 self-center text-base-content/40"
+        />
+      </.link>
+    </section>
   </div>
 </Layouts.app>
