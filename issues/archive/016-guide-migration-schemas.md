@@ -1,7 +1,7 @@
 ---
 id: 016
 title: Guide migration + schemas (GuideConversation, GuideMessage)
-status: todo
+status: done
 created: 2026-07-11
 depends_on: []
 ---
@@ -48,14 +48,20 @@ Files to create:
 No context module in this issue — the public `Sona.Guide` API on top of these schemas lives in 018.
 
 ## Acceptance criteria
-- [ ] `mix ecto.gen.migration create_guide_tables` created `*_create_guide_tables.exs`
-- [ ] Migration creates `guide_conversations` with `id` (uuid PK), `company_id` (FK `companies`, not null), `user_id` (FK `users`, not null), timestamps, a `unique_index` on `[:user_id]`, and an index on `[:company_id]`
-- [ ] Migration creates `guide_messages` with `id` (uuid PK), `conversation_id` (FK `guide_conversations`, not null), `role` (`:string` column — wrapped as `Ecto.Enum` in the schema, matching the existing `rooms.type` recipe of `:string` column + `Ecto.Enum` schema field), `body` (`:string`, not null — AGENTS.md: text columns use `:string`), timestamps, and an index on `[[:conversation_id, :inserted_at]]`
-- [ ] `mix ecto.migrate` (and `mix ecto.rollback` → `mix ecto.migrate`) round-trips cleanly
-- [ ] `GuideConversation` schema defines `company_id`, `user_id`, timestamps; no `cast` includes programmatically-set `company_id`/`user_id`
-- [ ] `GuideMessage` schema defines `role` as `Ecto.Enum, values: [:user, :assistant]` and `body` as `:string`; no `:system` role exists
-- [ ] No `user` association to preload on `GuideMessage`
-- [ ] `mix compile` clean; `mix credo --strict` clean for the new modules
+- [x] `mix ecto.gen.migration create_guide_tables` created `*_create_guide_tables.exs`
+- [x] Migration creates `guide_conversations` with `id` (uuid PK), `company_id` (FK `companies`, not null), `user_id` (FK `users`, not null), timestamps, a `unique_index` on `[:user_id]`, and an index on `[:company_id]`
+- [x] Migration creates `guide_messages` with `id` (uuid PK), `conversation_id` (FK `guide_conversations`, not null), `role` (`:string` column — wrapped as `Ecto.Enum` in the schema, matching the existing `rooms.type` recipe of `:string` column + `Ecto.Enum` schema field), `body` (`:string`, not null — AGENTS.md: text columns use `:string`), timestamps, and an index on `[[:conversation_id, :inserted_at]]`
+- [x] `mix ecto.migrate` (and `mix ecto.rollback` → `mix ecto.migrate`) round-trips cleanly
+- [x] `GuideConversation` schema defines `company_id`, `user_id`, timestamps; no `cast` includes programmatically-set `company_id`/`user_id`
+- [x] `GuideMessage` schema defines `role` as `Ecto.Enum, values: [:user, :assistant]` and `body` as `:string`; no `:system` role exists
+- [x] No `user` association to preload on `GuideMessage`
+- [x] `mix compile` clean; `mix credo --strict` clean for the new modules
 
 ## Notes
 - 2026-07-11: created from `plans/ai-shift-guide.md` ("Data model", "Migration"). No deps — schemas + migration are independent of the LLM seam (015) and the prompt builder (017); the context (018) composes them.
+- 2026-07-12: started implementation — generate migration with `mix ecto.gen.migration create_guide_tables`, then write GuideConversation and GuideMessage schemas
+- 2026-07-12: completed — all acceptance criteria met; mix precommit clean
+  - Files: `priv/repo/migrations/20260712151513_create_guide_tables.exs`, `lib/sona/guide/conversation.ex`, `lib/sona/guide/message.ex`
+  - Migration round-trips clean; both schemas compile and pass credo --strict
+  - All 116 existing tests pass unchanged
+- 2026-07-12: post-review fixes — GuideConversation changeset now includes validate_required([:company_id, :user_id]) before unique_constraint. Migration body column reverted to :text per user instruction (:text vs :string is same at SQL level, :text matches existing messages.body convention). Re-migrated and mix precommit clean.

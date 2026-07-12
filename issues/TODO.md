@@ -8,7 +8,6 @@ individual issue files for detail.
 
 ## Todo
 - [015](015-guide-llm-client-layer.md) Guide LLM client layer (req_llm dep + behaviour + Anthropic impl + Stub + config)
-- [016](016-guide-migration-schemas.md) Guide migration + schemas (GuideConversation, GuideMessage)
 - [017](017-guide-prompt-builder-shiftdata.md) Guide prompt builder + ShiftData (hardcoded temporary shift/overtime/demand)
 - [018](018-guide-context.md) Guide context — conversations, messages, send_user_message, company scoping
 - [019](019-guide-liveview.md) GuideLive — /guide chat-style AI guide conversation
