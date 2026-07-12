@@ -3,7 +3,7 @@ defmodule Sona.Guide.LLM.Anthropic do
   Anthropic-backed implementation of `Sona.Guide.LLM` using `req_llm`.
 
   Model is resolved from config key `:sona, :guide_model`, defaulting to
-  `anthropic:claude-3-5-haiku-20241022`.
+  `anthropic:claude-haiku-4-5-20251001`.
 
   The API key must be set via `ANTHROPIC_API_KEY` environment variable
   (or `config :req_llm, :anthropic_api_key` — see `ReqLLM` docs).
@@ -36,6 +36,6 @@ defmodule Sona.Guide.LLM.Anthropic do
   end
 
   defp model_id do
-    Application.get_env(:sona, :guide_model, "anthropic:claude-3-5-haiku-20241022")
+    Application.get_env(:sona, :guide_model, "anthropic:claude-haiku-4-5-20251001")
   end
 end

@@ -7,7 +7,7 @@ individual issue files for detail.
 - (none)
 
 ## Todo
-- [021](021-guide-seeds-precommit.md) Guide seeds (hardcoded proactive message) + whole-slice precommit gate
+- (none)
 
 ## Blocked
 - (none)

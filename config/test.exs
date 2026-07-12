@@ -42,4 +42,4 @@ config :phoenix,
 
 # LLM client — use the network-free stub in tests.
 config :sona, :guide_llm_impl, Sona.Guide.LLM.Stub
-config :sona, :guide_model, "anthropic:claude-3-5-haiku-20241022"
+config :sona, :guide_model, "anthropic:claude-haiku-4-5-20251001"

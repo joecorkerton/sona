@@ -10,6 +10,7 @@ import Ecto.Query
 
 alias Sona.Accounts
 alias Sona.Chats
+alias Sona.Guide
 alias Sona.Repo
 
 # 1. Create the demo company with a pinned invite token
@@ -94,6 +95,47 @@ Enum.each(sample_messages, fn %{body: body, user: user, room: room} ->
   Chats.send_message(room, user, %{body: body})
 end)
 
+# 7. Seed the AI Shift Guide
+IO.puts("Setting up AI Shift Guide…")
+
+# Ensure conversations for seeded users (idempotent)
+users = [alice, bob, charlie]
+
+Enum.each(users, &Guide.ensure_conversation/1)
+
+# Preload the company association — Prompt.build/2 and ShiftData.for/1
+# look at `user.company` to build site-aware context.
+guide_users = Repo.preload(users, :company)
+
+IO.puts("Generating proactive guide messages via LLM…")
+
+Enum.each(guide_users, fn user ->
+  shift_data = Sona.Guide.ShiftData.for(user)
+  system_prompt = Sona.Guide.Prompt.build(user, shift_data)
+
+  case Sona.Guide.LLM.impl().reply(
+         system_prompt,
+         [],
+         "Generate a pre-shift briefing for this worker based on the data above."
+       ) do
+    {:ok, body} ->
+      Guide.seed_proactive_message(user, body)
+      IO.puts("  ✓ Generated guide message for #{user.display_name || user.username}")
+
+    {:error, reason} ->
+      IO.puts(
+        "  ⚠ LLM call failed for #{user.display_name || user.username}: #{inspect(reason)}" <>
+          "\n    Falling back to hardcoded welcome message."
+      )
+
+      Guide.seed_proactive_message(
+        user,
+        "Welcome to the AI Guide, #{user.display_name || user.username}! " <>
+          "Check your upcoming schedule and site updates at /guide."
+      )
+  end
+end)
+
 user_count = Repo.aggregate(from(u in Sona.Accounts.User), :count, :id)
 
 IO.puts("""
@@ -101,4 +143,5 @@ IO.puts("""
   Invite URL: #{SonaWeb.Endpoint.url()}/join/demo-hotel
   Usernames:  alice, bob, charlie
   Total users: #{user_count}
+  Guide:       #{SonaWeb.Endpoint.url()}/guide
 """)
