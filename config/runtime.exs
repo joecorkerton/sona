@@ -133,4 +133,8 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Req
   #
   # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
+
+  # Anthropic API key for req_llm.
+  # Also auto-loaded from ANTHROPIC_API_KEY env var by dotenvy.
+  config :req_llm, :anthropic_api_key, System.fetch_env!("ANTHROPIC_API_KEY")
 end

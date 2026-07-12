@@ -75,3 +75,8 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# LLM client — explicitly use the Anthropic implementation in dev.
+# Requires the ANTHROPIC_API_KEY environment variable:
+#   export ANTHROPIC_API_KEY=sk-ant-...
+config :sona, :guide_llm_impl, Sona.Guide.LLM.Anthropic

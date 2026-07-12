@@ -1,7 +1,7 @@
 ---
 id: 015
 title: Guide LLM client layer (req_llm dep + behaviour + Anthropic impl + Stub + config)
-status: todo
+status: done
 created: 2026-07-11
 depends_on: []
 ---
@@ -33,15 +33,18 @@ Files to create/touch:
 Note: the reply-loop integration (calling `reply/3` with rebuilt system prompt + history from persisted messages) lives in the context issue 018; this issue only delivers the swappable client seam itself.
 
 ## Acceptance criteria
-- [ ] `{:req_llm, "~> 1.0"}` is in `mix.exs` deps (after `:req`), `mix deps.get` resolves it, and `mix deps.unlock --unused` stays clean
-- [ ] No `:httpoison` / `:tesla` / `:httpc` references introduced anywhere (`rg` confirms)
-- [ ] `lib/sona/guide/llm.ex` defines the `Sona.Guide.LLM` behaviour with `@callback reply/3` and an `impl/0` returning `Application.get_env(:sona, :guide_llm_impl, Sona.Guide.LLM.Anthropic)`
-- [ ] `lib/sona/guide/llm/anthropic.ex` implements `@behaviour Sona.Guide.LLM`, calls `ReqLLM.generate_text/3` with the `system_prompt:` option (or verified fallback), reads the model from `Application.get_env(:sona, :guide_model, "anthropic:claude-3-5-haiku-20241022")`, and returns `{:ok, text}` / `{:error, term()}`
-- [ ] `test/support/guide_llm_stub.ex` implements `Sona.Guide.LLM.Stub` returning a fixed reply string with an error-toggle variant — no network, no `ANTHROPIC_API_KEY` required
-- [ ] `config/test.exs` sets `:guide_llm_impl` to the stub and pins `:guide_model`; `config/runtime.exs` requires `ANTHROPIC_API_KEY` only in prod; `config/dev.exs` documents the dev key
-- [ ] The exact model id and `system_prompt:` option are confirmed against the installed `req_llm`/`llm_db` version and pinned in config (not invented)
-- [ ] `mix compile` clean with the new dep + modules; no compile warnings
-- [ ] `mix credo --strict` clean for the new modules
+- [x] `{:req_llm, "~> 1.0"}` is in `mix.exs` deps (after `:req`), `mix deps.get` resolves it, and `mix deps.unlock --unused` stays clean
+- [x] No `:httpoison` / `:tesla` / `:httpc` references introduced anywhere (`rg` confirms)
+- [x] `lib/sona/guide/llm.ex` defines the `Sona.Guide.LLM` behaviour with `@callback reply/3` and an `impl/0` returning `Application.get_env(:sona, :guide_llm_impl, Sona.Guide.LLM.Anthropic)`
+- [x] `lib/sona/guide/llm/anthropic.ex` implements `@behaviour Sona.Guide.LLM`, calls `ReqLLM.generate_text/3` with the `system_prompt:` option (or verified fallback), reads the model from `Application.get_env(:sona, :guide_model, "anthropic:claude-3-5-haiku-20241022")`, and returns `{:ok, text}` / `{:error, term()}`
+- [x] `test/support/guide_llm_stub.ex` implements `Sona.Guide.LLM.Stub` returning a fixed reply string with an error-toggle variant — no network, no `ANTHROPIC_API_KEY` required
+- [x] `config/test.exs` sets `:guide_llm_impl` to the stub and pins `:guide_model`; `config/runtime.exs` requires `ANTHROPIC_API_KEY` only in prod; `config/dev.exs` documents the dev key
+- [x] The exact model id and `system_prompt:` option are confirmed against the installed `req_llm`/`llm_db` version and pinned in config (not invented)
+- [x] `mix compile` clean with the new dep + modules; no compile warnings
+- [x] `mix credo --strict` clean for the new modules
 
 ## Notes
 - 2026-07-11: created from `plans/ai-shift-guide.md` ("LLM client", "Dependency", "Config", "req_llm call shape"). Spun out as a no-dependency foundation issue so the context (018) can rely on the seam being in place.
+- 2026-07-12: started implementation — add req_llm dep, behaviour module, Anthropic impl, Stub, config wiring
+- 2026-07-12: completed — all acceptance criteria met; mix precommit clean
+- 2026-07-12: confirmed model `anthropic:claude-3-5-haiku-20241022` resolves in llm_db (parsed via `ReqLLM.model/1`); `system_prompt:` option verified against `ReqLLM.generate_text/3` spec in `deps/req_llm/lib/req_llm/generation.ex`

@@ -39,3 +39,7 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# LLM client — use the network-free stub in tests.
+config :sona, :guide_llm_impl, Sona.Guide.LLM.Stub
+config :sona, :guide_model, "anthropic:claude-3-5-haiku-20241022"
