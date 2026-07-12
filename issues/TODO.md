@@ -7,7 +7,6 @@ individual issue files for detail.
 - (none)
 
 ## Todo
-- [019](019-guide-liveview.md) GuideLive — /guide chat-style AI guide conversation
 - [021](021-guide-seeds-precommit.md) Guide seeds (hardcoded proactive message) + whole-slice precommit gate
 
 ## Blocked

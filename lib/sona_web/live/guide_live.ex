@@ -1,37 +1,98 @@
 defmodule SonaWeb.GuideLive do
   @moduledoc """
-  Placeholder for the AI Shift Guide conversation LiveView.
+  Chat-style LiveView for the AI Shift Guide at `/guide`.
 
-  The real implementation (chat-style streams + composer + PubSub + LLM
-  reply loop) lands in issue 019 (`plans/ai-shift-guide.md`). This stub
-  exists only so that the `live "/guide", GuideLive` route added by
-  issue 020 compiles cleanly — the `<.link navigate={~p"/guide"}>`
-  reference on `/chats` requires a route to exist at compile time.
+  Models `SonaWeb.RoomLive` closely, but the counterpart is the LLM rather
+  than a coworker, so the surface is visually distinct (guide accent on
+  assistant bubbles, "Sona Guide" header with a sparkles icon, dedicated
+  Guide section in the inbox).
 
-  Until 019 lands, opening `/guide` renders a minimal placeholder. The
-  conversation is still auto-ensured by `Sona.Guide.ensure_conversation/1`
-  (called by `latest_guide_summary/1` on the inbox side) so there is no
-  data inconsistency to worry about.
+  `mount/3` auto-ensures the user's guide conversation so `/guide` always
+  renders, even on a first visit. Messages stream in from
+  `Sona.Guide.send_user_message/2` via PubSub broadcasts on
+  `"guide:user:<user.id>"` (no local insert in the send handler — the
+  broadcast round-trip drives the insert, single insert per client).
   """
-
   use SonaWeb, :live_view
+
+  alias Sona.Guide
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :page_title, "Sona Guide")}
+    current_user = socket.assigns.current_user
+    conversation = Guide.ensure_conversation(current_user)
+    messages = Guide.list_messages(conversation)
+
+    socket =
+      socket
+      |> assign(:page_title, "Sona Guide")
+      |> assign(:message_count, length(messages))
+      |> assign(:thinking, false)
+      |> stream(:guide_messages, messages, reset: true)
+      |> assign_form()
+      |> maybe_subscribe(current_user)
+
+    {:ok, socket}
+  end
+
+  defp maybe_subscribe(socket, current_user) do
+    if connected?(socket), do: Guide.subscribe_guide(current_user)
+    socket
   end
 
   @impl true
-  def render(assigns) do
-    ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="space-y-4">
-        <h1 class="text-2xl font-bold text-base-content sm:text-3xl">Sona Guide</h1>
-        <p class="text-sm text-base-content/60">
-          Your AI shift guide is coming soon. Check back later.
-        </p>
-      </div>
-    </Layouts.app>
-    """
+  def handle_event("send", %{"body" => body}, socket) do
+    body = String.trim(body || "")
+
+    socket =
+      if body == "" do
+        socket
+      else
+        case Guide.send_user_message(socket.assigns.current_user, body) do
+          {:ok, _assistant_msg} ->
+            # LLM call landed; thinking stays on until the assistant
+            # broadcast lands in handle_info, then re-enables composer.
+            assign_form(socket) |> assign(:thinking, true)
+
+          {:error, reason} ->
+            # No assistant message will arrive; re-enable composer so the
+            # user can retry with their text retained in the input.
+            socket
+            |> put_flash(:error, format_error(reason))
+            |> assign_form_with_text(body)
+            |> assign(:thinking, false)
+        end
+      end
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:new_guide_message, msg}, socket) do
+    socket =
+      socket
+      |> stream_insert(:guide_messages, msg, at: -1)
+      |> assign(:message_count, socket.assigns.message_count + 1)
+      |> maybe_finish_thinking(msg)
+
+    {:noreply, socket}
+  end
+
+  # Re-enable the composer only when the assistant reply lands; a :user
+  # broadcast (the user's own message coming back through PubSub) leaves
+  # "thinking" on while we wait for the LLM.
+  defp maybe_finish_thinking(socket, %{role: :assistant}), do: assign(socket, :thinking, false)
+  defp maybe_finish_thinking(socket, _user_msg), do: socket
+
+  defp assign_form(socket) do
+    assign(socket, :form, to_form(%{"body" => ""}, id: "guide-compose-form"))
+  end
+
+  defp assign_form_with_text(socket, text) do
+    assign(socket, :form, to_form(%{"body" => text}, id: "guide-compose-form"))
+  end
+
+  defp format_error(reason) do
+    "Couldn't reach the guide right now (#{inspect(reason)}). Try again in a moment."
   end
 end

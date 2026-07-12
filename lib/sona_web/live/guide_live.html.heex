@@ -1,0 +1,92 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="flex h-[calc(100dvh-3rem)] flex-col overflow-hidden -mx-4 -mt-3 sm:-mx-6 sm:-mt-4">
+    <%!-- Sticky guide header --%>
+    <div class="sticky top-0 z-10 flex flex-none items-center gap-2 border-b border-base-300 bg-base-100 px-4 py-3">
+      <.link
+        navigate={~p"/chats"}
+        class="text-base-content/60 hover:text-base-content"
+        aria-label="Back to inbox"
+      >
+        <.icon name="hero-arrow-left-micro" class="size-5" />
+      </.link>
+      <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-sona-lime text-base-content">
+        <.icon name="hero-sparkles" class="size-4" />
+      </div>
+      <h1 id="guide-header-name" class="truncate text-lg font-semibold text-base-content">
+        Sona Guide
+      </h1>
+    </div>
+
+    <%!-- Messages (LiveView stream) --%>
+    <div
+      id="guide-messages"
+      phx-update="stream"
+      class="flex-1 space-y-3 overflow-y-auto px-4 pb-[60px] pt-4"
+    >
+      <div
+        id="guide-messages-empty"
+        class="hidden only:block py-8 text-center text-base-content/50"
+      >
+        No messages yet — say hi to your guide.
+      </div>
+
+      <div
+        :for={{dom_id, msg} <- @streams.guide_messages}
+        id={dom_id}
+        class={["flex", msg.role == :user && "justify-end"]}
+        data-role={msg.role}
+      >
+        <div class="flex max-w-[75%] items-end gap-2">
+          <div
+            :if={msg.role == :assistant}
+            class="flex size-7 shrink-0 items-center justify-center rounded-full bg-sona-lime text-base-content"
+            aria-hidden="true"
+          >
+            <.icon name="hero-sparkles" class="size-3.5" />
+          </div>
+          <div class={[
+            "rounded-xl px-3 py-2",
+            msg.role == :assistant && "bg-sona-lime text-base-content",
+            msg.role == :user && "bg-primary text-primary-content"
+          ]}>
+            <p class="whitespace-pre-wrap text-sm">{msg.body}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%!-- Composer (sticky to viewport bottom; centered with max-w-2xl on
+        desktop so the form's right edge lines up with the message column,
+        while staying at the viewport's right edge on mobile) --%>
+    <div class="fixed inset-x-0 bottom-0 z-20 border-t border-base-300 bg-base-100">
+      <div class="mx-auto max-w-2xl px-4 py-3">
+        <div
+          :if={@thinking}
+          id="guide-thinking"
+          class="mb-2 flex items-center gap-2 text-xs text-base-content/60"
+        >
+          <.icon name="hero-sparkles" class="size-3.5 motion-safe:animate-pulse" />
+          <span>Guide is thinking…</span>
+        </div>
+        <.form
+          for={@form}
+          id="guide-compose-form"
+          phx-submit="send"
+          class="ml-auto w-fit max-w-md"
+        >
+          <div class="flex gap-2">
+            <.input
+              field={@form[:body]}
+              type="text"
+              placeholder="Ask your guide..."
+              disabled={@thinking}
+            />
+            <.button type="submit" variant="primary" class="shrink-0" disabled={@thinking}>
+              Send
+            </.button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  </div>
+</Layouts.app>
