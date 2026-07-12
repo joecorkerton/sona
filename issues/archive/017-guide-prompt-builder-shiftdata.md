@@ -1,7 +1,7 @@
 ---
 id: 017
 title: Guide prompt builder + ShiftData (hardcoded temporary shift/overtime/demand)
-status: todo
+status: done
 created: 2026-07-11
 depends_on: []
 ---
@@ -36,14 +36,17 @@ Files to create:
 This issue has no deps: it touches no schema, no LLM, no LiveView. It is consumed by the context's `send_user_message/2` in 018, so 018 depends on it.
 
 ## Acceptance criteria
-- [ ] `Sona.Guide.ShiftData.for(%User{})` returns a map with the keys `previous_shifts`, `upcoming_shifts`, `overtime`, `demand`, and `site` (the user's `%Company{}`); values are hardcoded sample data for the seeded users (Alice/Bob/Charlie)
-- [ ] `Sona.Guide.Prompt.build(%User{}, shift_data)` returns a single string
-- [ ] The returned prompt string contains identifiable markers for the injected previous shifts, upcoming shifts, overtime, and demand data (assert presence in `prompt_test.exs`)
-- [ ] The prompt establishes a persona/goal for the guide and output rules for the reply
-- [ ] `Sona.Guide.Prompt.build/2` is a pure function — no network, no Repo, no LLM call
-- [ ] `Sona.Guide.ShiftData.for/1` is pure (no Repo/network); reads only `user.company`
-- [ ] `test/sona/guide/prompt_test.exs` asserts the injected-data markers are present in the built string; tests pass without `ANTHROPIC_API_KEY`
-- [ ] `mix credo --strict` clean for the new modules
+- [x] `Sona.Guide.ShiftData.for(%User{})` returns a map with the keys `previous_shifts`, `upcoming_shifts`, `overtime`, `demand`, and `site` (the user's `%Company{}`); values are hardcoded sample data for the seeded users (Alice/Bob/Charlie)
+- [x] `Sona.Guide.Prompt.build(%User{}, shift_data)` returns a single string
+- [x] The returned prompt string contains identifiable markers for the injected previous shifts, upcoming shifts, overtime, and demand data (assert presence in `prompt_test.exs`)
+- [x] The prompt establishes a persona/goal for the guide and output rules for the reply
+- [x] `Sona.Guide.Prompt.build/2` is a pure function — no network, no Repo, no LLM call
+- [x] `Sona.Guide.ShiftData.for/1` is pure (no Repo/network); reads only `user.company`
+- [x] `test/sona/guide/prompt_test.exs` asserts the injected-data markers are present in the built string; tests pass without `ANTHROPIC_API_KEY`
+- [x] `mix credo --strict` clean for the new modules
 
 ## Notes
 - 2026-07-11: created from `plans/ai-shift-guide.md` ("Prompt builder", "Temporary shift data"). Pure-function issue, no deps, so it can be built/verified in isolation before the context (018) wires it into `send_user_message/2`.
+- 2026-07-10: started implementation — creating ShiftData and Prompt modules
+- 2026-07-10: ShiftData + Prompt modules implemented; 21 tests passing; credo clean
+- 2026-07-10: completed — all acceptance criteria met; mix precommit clean
